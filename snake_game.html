@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+<style>
+    body { text-align: center; font-family: monospace; background: #222; color: #fff; }
+    canvas { background: #000; display: block; margin: 20px auto; }
+</style>
+</head>
+<body>
+
+<h1>Snake Game</h1>
+<canvas id="gameCanvas" width="400" height="300"></canvas>
+<p>Score: <span id="score">0</span></p>
+<p>Use W/A/S/D keys to move</p>
+
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const WIDTH = 20;   // grid width
+const HEIGHT = 15;  // grid height
+const CELL_SIZE = 20;
+
+let snake = [{x: Math.floor(WIDTH/2), y: Math.floor(HEIGHT/2)}];
+let food = {};
+let score = 0;
+let dir = 'd'; // initial direction
+
+function placeFood() {
+    food.x = Math.floor(Math.random() * WIDTH);
+    food.y = Math.floor(Math.random() * HEIGHT);
+}
+
+function drawBoard() {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw snake
+    ctx.fillStyle = "#0f0";
+    snake.forEach(node => {
+        ctx.fillRect(node.x * CELL_SIZE, node.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+    });
+
+    // Draw food
+    ctx.fillStyle = "#f00";
+    ctx.fillRect(food.x * CELL_SIZE, food.y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
+
+    // Update score
+    document.getElementById("score").innerText = score;
+}
+
+function collision(x, y) {
+    if (x < 0 || x >= WIDTH || y < 0 || y >= HEIGHT) return true;
+    for (let node of snake) {
+        if (node.x === x && node.y === y) return true;
+    }
+    return false;
+}
+
+function gameOver() {
+    alert("=== GAME OVER ===\nFinal Score: " + score);
+    snake = [{x: Math.floor(WIDTH/2), y: Math.floor(HEIGHT/2)}];
+    score = 0;
+    dir = 'd';
+    placeFood();
+}
+
+function gameLoop() {
+    let head = {...snake[0]};
+    if (dir === 'w') head.y--;
+    else if (dir === 's') head.y++;
+    else if (dir === 'a') head.x--;
+    else if (dir === 'd') head.x++;
+
+    if (collision(head.x, head.y)) {
+        gameOver();
+        return;
+    }
+
+    snake.unshift(head);
+
+    if (head.x === food.x && head.y === food.y) {
+        score++;
+        placeFood();
+    } else {
+        snake.pop();
+    }
+
+    drawBoard();
+}
+
+// Handle key presses
+document.addEventListener("keydown", e => {
+    const key = e.key.toLowerCase();
+    if (["w","a","s","d"].includes(key)) dir = key;
+});
+
+// Start game
+placeFood();
+setInterval(gameLoop, 200); // 200ms similar to usleep(200000)
+</script>
+
+</body>
+</html>
